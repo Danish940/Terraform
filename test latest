@@ -1,0 +1,171 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
+}
+
+provider "aws" {
+  region     = "us-east-1"
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_access_key
+}
+#1 create S3 bucket
+
+#2 Create a VPC
+resource "aws_vpc" "vpc1" {
+  cidr_block           = var.vpc_cidr1
+  enable_dns_hostnames = true
+  tags = {
+    Name = "vpc1"
+  }
+}
+
+#3 internet gateway
+resource "aws_internet_gateway" "internet-gw" {
+  vpc_id = aws_vpc.vpc1.id
+
+  tags = {
+    Name = "internet-gw"
+  }
+}
+
+#4 route table
+resource "aws_route_table" "public-rt" {
+  vpc_id = aws_vpc.vpc1.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.internet-gw.id
+  }
+
+  tags = {
+    Name = "public-rt"
+  }
+}
+
+resource "aws_route_table" "private-rt" {
+  vpc_id = aws_vpc.vpc1.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.internet-gw.id
+  }
+
+  tags = {
+    Name = "private_rt"
+  }
+}
+
+#5 route table association
+resource "aws_route_table_association" "public-rta" {
+  subnet_id      = aws_subnet.public_sub1.id
+  route_table_id = aws_route_table.public-rt.id
+}
+
+resource "aws_route_table_association" "private-rta" {
+  subnet_id      = aws_subnet.private_sub1.id
+  route_table_id = aws_route_table.private-rt.id
+}
+
+#7 subnet
+resource "aws_subnet" "public_sub1" {
+  cidr_block              = var.public_subnet_cidr
+  vpc_id                  = aws_vpc.vpc1.id
+  availability_zone       = "us-east-1a"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "public_sub1"
+  }
+}
+
+resource "aws_subnet" "private_sub1" {
+  vpc_id            = aws_vpc.vpc1.id
+  cidr_block        = var.private_subnet_cidr
+  availability_zone = "us-east-1a"
+
+  tags = {
+    Name = "Private_Sub1"
+  }
+}
+
+# security group
+
+resource "aws_security_group" "sg_1" {
+  name   = "sg_1"
+  vpc_id = aws_vpc.vpc1.id
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    name = "sg_1"
+  }
+}
+
+#8 instance ansible master
+resource "aws_instance" "Ansible_master" {
+  count         = 1
+  ami           = var.ami_access
+  instance_type = var.new_instance_type
+  subnet_id     = aws_subnet.public_sub1.id
+  security_groups = [aws_security_group.sg_1.id]
+  key_name = var.danish_key_pair
+
+  tags = {
+    Name = "Ansible_master"
+  }
+}
+
+#9 instance ansible slave1
+resource "aws_instance" "ansible_slave1" {
+  count         = 1
+  ami           = var.ami_access
+  instance_type = var.new_instance_type
+  subnet_id     = aws_subnet.public_sub1.id
+  security_groups = [aws_security_group.sg_1.id]
+  key_name = var.danish_key_pair
+
+  tags = {
+    Name = "Ansible_slave1"
+  }
+}
+
+#10 instance ansible slave2
+resource "aws_instance" "ansible_slave2" {
+  count         = 1
+  ami           = var.ami_access
+  instance_type = var.new_instance_type
+  subnet_id     = aws_subnet.public_sub1.id
+  security_groups = [aws_security_group.sg_1.id]
+  key_name = var.danish_key_pair
+
+  tags = {
+    Name = "Ansible_slave2"
+  }
+}
+
+#11 instance ansible slave3
+resource "aws_instance" "ansible_slave3" {
+  count         = 1
+  ami           = var.ami_access
+  instance_type = var.new_instance_type
+  subnet_id     = aws_subnet.public_sub1.id
+  security_groups = [aws_security_group.sg_1.id]
+  key_name = var.danish_key_pair
+
+  tags = {
+    Name = "Ansible_slave3"
+  }
+}
