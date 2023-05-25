@@ -1,0 +1,18 @@
+new_instance_type     = "t2.micro"
+aws_access_key        = "AKIA2PKNDQBFSV46KSPH"
+aws_secret_access_key = "PTKO/BCa8EEJczy3Pw+Ly5OfgE8Ht0Q46MjjB8fx"
+
+instance_tags = {
+  Name = "new example"
+  foo  = 1
+}
+
+ami_access = "ami-002070d43b0a4f171"
+
+vpc_cidr1 = "10.0.0.0/16"
+
+public_subnet_cidr = "10.0.0.0/28"
+
+private_subnet_cidr = "10.0.0.128/28"
+
+danish_key_pair = "Danish keypair"
